@@ -17,6 +17,17 @@ if config.has_section('TEST_CONFIG') and config['TEST_CONFIG'].get('api_endpoint
 else:
     raise ValueError(f"No 'TEST_CONFIG' section of 'api_endpoint' in config {cfg_path}.")
 
+# Check connection before test suite
+@pytest.fixture(scope="session", autouse=True)
+def check_connection_before_suite():
+    # Code that will run before your test suite
+    r = requests.get(url)
+    if r.status_code != 200:
+        raise Exception(f"Test endpoint cannot be reached. \n "
+                        f"HTTP status code -> {r.status_code}. \n "
+                        f"Please check test config -> {cfg_path}")
+    yield
+
 
 td = {'name': 'Mitte Apartments', 'price': 900.0, 'street': 'Unter den Linden', 'rooms': 3, 'status': 'true'}
 
