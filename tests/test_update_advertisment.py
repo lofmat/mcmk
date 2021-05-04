@@ -17,32 +17,37 @@ if config.has_section('TEST_CONFIG') and config['TEST_CONFIG'].get('api_endpoint
 else:
     raise ValueError(f"No 'TEST_CONFIG' section of 'api_endpoint' in config {cfg_path}.")
 
-# test data
-# CORRECT PARAMS
-td_mand_fields_only = {'name': 'New one 1111111111111111111111', 'price': '11111111111'}
-# td_full = {'name': 'To be updated 1', 'price': 900, 'street': 'Street 2', 'rooms': 3, 'status': 'true'}
-# td_empty = {'name': '', 'price': '', 'street': '', 'rooms': '', 'status': ''}
+
+td = {'name': 'Mitte Apartments', 'price': 900.0, 'street': 'Unter den Linden', 'rooms': 3, 'status': 'true'}
 
 
-@pytest.mark.skip
-@pytest.mark.parametrize("data", [td_mand_fields_only])
+# PUT  method
+@pytest.mark.parametrize("data", [td])
 def test_update_existing_ad(data):
     # Create ad
-    response = requests.post(url, json=data)
-    rd = response.json()
-    tmp_json = rd.copy()
+    post_resp = requests.post(url, json=data).json()
+    tmp_json = post_resp.copy()
     tmp_json.pop('_id', None)
+    # Check value that post returned
     assert sorted(data.items()) == sorted(tmp_json.items()), 'POST request failed'
+    get_resp = requests.get(f"{url}/{post_resp['_id']}").json()
+    # Check that ad exist
+    assert sorted(get_resp.items()) == sorted(post_resp.items()), 'POST request failed'
     # Change ad
-    updated_data = {'name': f"Updated {data['name']}", 'price': "1", '_id': f"{rd['_id']}"}
-    r = requests.put(f"{url}/{rd['_id']}", json=updated_data)
+    updated_data = {'name': f"Updated {data['name']}",
+                    'price': {int(data['price']) + 1000},
+                    'street': f"Updated {data['street']}",
+                    'rooms': {int(data['rooms']) + 3},
+                    'status': 'false',
+                    '_id': f"{post_resp['_id']}"}
+    r = requests.put(f"{url}/{post_resp['_id']}", json=updated_data)
     # Updated 1 item
     assert int(r.text) == 1, 'Must be updated only 1 item'
-    upd_r = requests.get(f"{url}/{rd['_id']}")
+    upd_r = requests.get(f"{url}/{post_resp['_id']}")
     assert sorted(upd_r.json().items()) == sorted(updated_data.items()), f'Prepared data {updated_data} ' \
                                                                          f'different with requested {upd_r}'
 
-@pytest.mark.skip
+
 def test_update_non_existent_ad():
     fake_id = '0000000000000000'
     # Change fake ad
@@ -51,25 +56,52 @@ def test_update_non_existent_ad():
     assert int(r.text) == 0, 'It should not be updated any entries'
 
 
-@pytest.mark.skip
-@pytest.mark.parametrize("data", [td_mand_fields_only])
+@pytest.mark.parametrize("data", [td])
 def test_update_existing_ad_with_the_same_data(data):
     # Create ad
     response = requests.post(url, json=data)
     rd = response.json()
-    tmp_json = rd.copy()
-    tmp_json.pop('_id', None)
-    assert sorted(data.items()) == sorted(tmp_json.items()), 'POST request failed'
+    tmp_json_post = rd.copy()
+    tmp_json_post.pop('_id', None)
+    assert sorted(data.items()) == sorted(tmp_json_post.items()), 'POST request failed'
     # Change ad
     r = requests.put(f"{url}/{rd['_id']}", json=data)
     # Updated 1 item
     assert int(r.text) == 1, 'Must be updated only 1 item'
     upd_r = requests.get(f"{url}/{rd['_id']}")
-    assert sorted(data.items()) == sorted(upd_r.json().items()), 'PUT request failed'
+    tmp_json_get = upd_r.json()
+    tmp_json_get.pop('_id', None)
+    assert sorted(data.items()) == sorted(tmp_json_get.items()), 'PUT request failed'
 
 
-@pytest.mark.skip
-@pytest.mark.parametrize("data", [td_mand_fields_only])
+# "PATCH  method"
+@pytest.mark.parametrize("data", [td])
+def test_update_existing_ad(data):
+    # Create ad
+    post_resp = requests.post(url, json=data).json()
+    tmp_json = post_resp.copy()
+    tmp_json.pop('_id', None)
+    # Check value that post returned
+    assert sorted(data.items()) == sorted(tmp_json.items()), 'POST request failed'
+    get_resp = requests.get(f"{url}/{post_resp['_id']}").json()
+    # Check that ad exist
+    assert sorted(get_resp.items()) == sorted(post_resp.items()), 'POST request failed'
+    # Partial update
+    updated_data = {'name': f"Updated {data['name']}",
+                    'price': data['price'],
+                    'street': data['street'],
+                    'rooms': data['rooms'],
+                    'status': 'false',
+                    '_id': f"{post_resp['_id']}"}
+    r = requests.put(f"{url}/{post_resp['_id']}", json=updated_data)
+    # Updated 1 item
+    assert int(r.text) == 1, 'Must be updated only 1 item'
+    upd_r = requests.get(f"{url}/{post_resp['_id']}")
+    assert sorted(upd_r.json().items()) == sorted(updated_data.items()), f'Prepared data {updated_data} ' \
+                                                                         f'different with requested {upd_r}'
+
+
+@pytest.mark.parametrize("data", [td])
 def test_update_existing_post_with_too_long_name(data):
     # Create ad
     response = requests.post(url, json=data)
@@ -78,7 +110,12 @@ def test_update_existing_post_with_too_long_name(data):
     tmp_json.pop('_id', None)
     assert sorted(data.items()) == sorted(tmp_json.items()), 'POST request failed'
     # Change ad
-    updated_data = {'name': "0" * 100, 'price': "1", '_id': f"{rd['_id']}"}
+    updated_data = {'name': "0" * 100,
+                    'price': data['price'],
+                    'street': data['street'],
+                    'rooms': data['rooms'],
+                    'status': 'false',
+                    '_id': f"{rd['_id']}"}
     r = requests.put(f"{url}/{rd['_id']}", json=updated_data)
     # Updated 1 item
     assert int(r.text) == 1, 'Must be updated only 1 item'
@@ -88,8 +125,7 @@ def test_update_existing_post_with_too_long_name(data):
                                                                          f'different with requested {upd_r}'
 
 
-@pytest.mark.skip
-@pytest.mark.parametrize("data", [td_mand_fields_only])
+@pytest.mark.parametrize("data", [td])
 def test_update_existing_post_with_non_existent_field(data):
     # Create ad
     response = requests.post(url, json=data)
@@ -98,29 +134,14 @@ def test_update_existing_post_with_non_existent_field(data):
     tmp_json.pop('_id', None)
     assert sorted(data.items()) == sorted(tmp_json.items()), 'POST request failed'
     # Change ad
-    updated_data = {'name': "Name", 'price': "1", '_id': f"{rd['_id']}", 'additional_field': 100}
+    updated_data = {'name': 'Name',
+                    'price': data['price'],
+                    'street': data['street'],
+                    'rooms': data['rooms'],
+                    'status': 'false',
+                    '_id': f"{rd['_id']}",
+                    'additional_field': 100}
     r = requests.put(f"{url}/{rd['_id']}", json=updated_data)
     # Updated 1 item
     # TODO what is expected behavior? I guess it isn't acceptable to allow to add new fields
-    assert int(r.text) == 0, 'Must be updated only 0 item'
-
-
-@pytest.mark.parametrize("data", [{'name': "SuperXXX12eqweqew2 nameXXX12", 'price': "999923299"}])
-def test_update_existing_post_with_non_existent_field(data):
-    # Create ad
-    response = requests.post(url, json=data)
-    rd = response.json()
-    tmp_json = rd.copy()
-    tmp_json.pop('_id', None)
-    # assert sorted(data.items()) == sorted(tmp_json.items()), 'POST request failed'
-
-    k = requests.put(f"{url}/{rd['_id']}", json={})
-                         #, json={"name": "Super name", "price": "999999", "_id": 'zKN5bYtr5dgBZYCI'})
-    print('111 ', k.text)
-    hh = requests.patch(f"{url}/{rd['_id']}", json={'name':'1111111100000000001111111111'})
-    print('000', hh.text)
-    jj = requests.delete(f"{url}/{rd['_id']}")
-    print('1,4', jj.text)
-    knx = requests.get(f"{url}/{rd['_id']}")
-    print('222', knx.text)
-    assert knx
+    assert int(r.text) == 0, 'Should be returned error instead of updated entries number'
