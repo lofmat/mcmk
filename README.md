@@ -10,7 +10,7 @@ API testing
 6. Add WebDriver path to **config/test.ini** as **selenium_driver_path**
 
 ## How to run tests
-1. Include selenium driver directory to PATH:
+1. Include selenium driver directory to **PATH**:
  export PATH=$PATH:%selenium_driver_path%
 2. python3.9 -m pytest -s -v
 
