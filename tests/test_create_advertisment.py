@@ -18,6 +18,7 @@ else:
     raise ValueError(f"No 'TEST_CONFIG' section of 'api_endpoint' in config {cfg_path}.")
 
 
+# TODO check DELETE method implementation to make cleanup before/after tests
 # Check connection before test suite
 @pytest.fixture(scope="session", autouse=True)
 def check_connection_before_suite():
