@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 
 import configparser
@@ -31,7 +33,12 @@ def check_connection_before_suite():
     yield
 
 
-td = {'name': 'Mitte Apartments', 'price': 900.0, 'street': 'Unter den Linden', 'rooms': 3, 'status': 'true'}
+# Test data
+td = {'name': 'Mitte Apartments',
+      'price': 900.0,
+      'street': 'Unter den Linden',
+      'rooms': 3,
+      'status': 'true'}
 
 
 # PUT  method

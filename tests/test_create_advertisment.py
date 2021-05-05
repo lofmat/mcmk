@@ -1,7 +1,7 @@
+#!/usr/bin/env python
 import os
 
 import configparser
-import logging
 import requests
 import pytest
 
@@ -10,7 +10,6 @@ config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolat
 
 # Read test configuration file
 cfg_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'config', 'test.ini')
-logging.info(f'Using config -> {cfg_path}')
 config.read(cfg_path)
 if config.has_section('TEST_CONFIG') and config['TEST_CONFIG'].get('api_endpoint'):
     url = config['TEST_CONFIG']['api_endpoint']

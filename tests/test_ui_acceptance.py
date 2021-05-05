@@ -1,15 +1,8 @@
 #!/usr/bin/env python
-
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
-from datetime import datetime
-import configparser
-import logging
 import os
+
+import configparser
+from selenium import webdriver
 import pytest
 
 # Extended interpolation allows read section inside ini config
@@ -17,7 +10,6 @@ config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolat
 
 # Read test configuration file
 cfg_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'config', 'test.ini')
-logging.info(f'Using config -> {cfg_path}')
 config.read(cfg_path)
 selenium_driver_path = config['TEST_CONFIG']['selenium_driver_path']
 test_url = config['TEST_CONFIG']['site_under_test']
