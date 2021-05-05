@@ -133,3 +133,6 @@ dmypy.json
 
 # Selenium log
 geckodriver.log
+
+# Pytest cache
+.pytest_cache
