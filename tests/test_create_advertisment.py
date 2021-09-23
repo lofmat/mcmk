@@ -8,6 +8,8 @@ import pytest
 # Extended interpolation allows read section inside ini config
 config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
 
+# ONE MORE COMMENT
+
 # Read test configuration file
 cfg_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'config', 'test.ini')
 config.read(cfg_path)
